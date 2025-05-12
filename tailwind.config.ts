@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,14 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Flow chart specific colors
+				'flow-blue': '#4DABF7',
+				'flow-purple': '#7950F2',
+				'flow-yellow': '#FCC419',
+				'flow-green': '#40C057',
+				'flow-red': '#FA5252',
+				'dark-bg': '#111111',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

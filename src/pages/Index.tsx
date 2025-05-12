@@ -1,11 +1,21 @@
-// Update this page (the content is just a fallback if you fail to update the page)
 
-const Index = () => {
+import React from 'react';
+import { Sidebar } from '@/components/layout/Sidebar';
+import FlowEditor from '@/components/flow/FlowEditor';
+
+const Index: React.FC = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <div className="flex min-h-screen bg-gray-100">
+      <Sidebar />
+      <div className="flex-1 flex flex-col">
+        <div className="p-4 border-b bg-white shadow-sm">
+          <h1 className="text-xl font-semibold">User Flow</h1>
+          <p className="text-sm text-gray-500">Design and manage user payment flow</p>
+        </div>
+        
+        <div className="flex-1 p-2">
+          <FlowEditor />
+        </div>
       </div>
     </div>
   );
