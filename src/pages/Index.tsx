@@ -9,8 +9,8 @@ const Index: React.FC = () => {
       <Sidebar />
       <div className="flex-1 flex flex-col">
         <div className="p-4 border-b bg-white shadow-sm">
-          <h1 className="text-xl font-semibold">User Flow</h1>
-          <p className="text-sm text-gray-500">Design and manage user payment flow</p>
+          <h1 className="text-xl font-semibold">Flow Editor</h1>
+          <p className="text-sm text-gray-500">Create and customize your workflow diagrams</p>
         </div>
         
         <div className="flex-1 p-2">
