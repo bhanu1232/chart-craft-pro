@@ -16,7 +16,11 @@ import {
   Redo,
   Plus,
   Search,
-  Layout
+  Layout,
+  Check,
+  X,
+  QrCode,
+  Flag
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
@@ -39,8 +43,12 @@ export const Sidebar: React.FC = () => {
           <span>Decision</span>
         </div>
         <div className="flow-sidebar-item flex items-center p-2 rounded hover:bg-gray-800">
-          <Circle className="w-5 h-5 mr-3 text-flow-green" />
+          <Check className="w-5 h-5 mr-3 text-flow-green" />
           <span>Success</span>
+        </div>
+        <div className="flow-sidebar-item flex items-center p-2 rounded hover:bg-gray-800">
+          <X className="w-5 h-5 mr-3 text-flow-red" />
+          <span>Error</span>
         </div>
         <div className="flow-sidebar-item flex items-center p-2 rounded hover:bg-gray-800">
           <CreditCard className="w-5 h-5 mr-3 text-blue-400" />
@@ -49,6 +57,14 @@ export const Sidebar: React.FC = () => {
         <div className="flow-sidebar-item flex items-center p-2 rounded hover:bg-gray-800">
           <Image className="w-5 h-5 mr-3 text-purple-400" />
           <span>Image</span>
+        </div>
+        <div className="flow-sidebar-item flex items-center p-2 rounded hover:bg-gray-800">
+          <QrCode className="w-5 h-5 mr-3 text-gray-400" />
+          <span>QR Code</span>
+        </div>
+        <div className="flow-sidebar-item flex items-center p-2 rounded hover:bg-gray-800">
+          <Flag className="w-5 h-5 mr-3 text-green-400" />
+          <span>Flag</span>
         </div>
         <div className="flow-sidebar-item flex items-center p-2 rounded hover:bg-gray-800">
           <Plus className="w-5 h-5 mr-3 text-gray-400" />

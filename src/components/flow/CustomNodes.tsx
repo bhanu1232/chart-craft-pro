@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { Handle, Position } from '@xyflow/react';
 
 type NodeProps = {
   data: {
     label: string;
+    imageUrl?: string;
   };
   isConnectable: boolean;
 };
@@ -160,6 +160,39 @@ export const CardNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
         </div>
         <div className="text-xs">{data.label}</div>
       </div>
+    </>
+  );
+};
+
+export const ImageNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
+  return (
+    <>
+      <Handle
+        type="target"
+        position={Position.Top}
+        isConnectable={isConnectable}
+      />
+      <div className="p-1">
+        <div className="w-24 h-24 mx-auto mb-1 flex items-center justify-center bg-white rounded-md overflow-hidden">
+          {data.imageUrl ? (
+            <img 
+              src={data.imageUrl} 
+              alt={data.label} 
+              className="max-w-full max-h-full object-contain"
+            />
+          ) : (
+            <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">
+              No Image
+            </div>
+          )}
+        </div>
+        <div className="text-xs">{data.label}</div>
+      </div>
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        isConnectable={isConnectable}
+      />
     </>
   );
 };

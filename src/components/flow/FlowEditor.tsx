@@ -10,6 +10,8 @@ import {
   addEdge,
   Panel,
   MarkerType,
+  Edge,
+  Connection,
 } from '@xyflow/react';
 import { toPng } from 'html-to-image';
 import { toast } from "sonner";
@@ -23,7 +25,8 @@ import {
   ErrorNode,
   FlagNode,
   QRCodeNode,
-  CardNode
+  CardNode,
+  ImageNode
 } from './CustomNodes';
 
 // Initial nodes and edges
@@ -63,6 +66,15 @@ const initialNodes = [
     type: 'card',
     position: { x: 550, y: 350 },
     data: { label: 'Pay Cards' },
+  },
+  {
+    id: 'image-1',
+    type: 'image',
+    position: { x: 250, y: 450 },
+    data: { 
+      label: 'Sample Image',
+      imageUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475'
+    },
   },
 ];
 
@@ -117,6 +129,7 @@ const nodeTypes = {
   flag: FlagNode,
   qrcode: QRCodeNode,
   card: CardNode,
+  image: ImageNode,
 };
 
 const FlowEditor: React.FC = () => {
@@ -132,19 +145,74 @@ const FlowEditor: React.FC = () => {
     flag: 1,
     qrcode: 1,
     card: 1,
+    image: 1,
   });
+  const [history, setHistory] = useState<{nodes: any[], edges: any[]}[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
 
-  const onConnect = useCallback((params: any) => {
-    setEdges((eds) => 
-      addEdge({ 
+  // Save current state to history
+  const saveToHistory = useCallback(() => {
+    const currentState = {
+      nodes: JSON.parse(JSON.stringify(nodes)),
+      edges: JSON.parse(JSON.stringify(edges))
+    };
+    
+    // Only save if there are actual changes
+    if (historyIndex >= 0) {
+      const lastState = history[historyIndex];
+      if (JSON.stringify(lastState) === JSON.stringify(currentState)) {
+        return;
+      }
+    }
+    
+    // Remove future history if we're not at the latest point
+    const newHistory = history.slice(0, historyIndex + 1);
+    setHistory([...newHistory, currentState]);
+    setHistoryIndex(newHistory.length);
+  }, [nodes, edges, history, historyIndex]);
+
+  // Undo function
+  const handleUndo = useCallback(() => {
+    if (historyIndex > 0) {
+      const newIndex = historyIndex - 1;
+      const previousState = history[newIndex];
+      setNodes(previousState.nodes);
+      setEdges(previousState.edges);
+      setHistoryIndex(newIndex);
+      toast("Undo successful");
+    } else {
+      toast("Nothing to undo");
+    }
+  }, [historyIndex, history, setNodes, setEdges]);
+
+  // Redo function
+  const handleRedo = useCallback(() => {
+    if (historyIndex < history.length - 1) {
+      const newIndex = historyIndex + 1;
+      const nextState = history[newIndex];
+      setNodes(nextState.nodes);
+      setEdges(nextState.edges);
+      setHistoryIndex(newIndex);
+      toast("Redo successful");
+    } else {
+      toast("Nothing to redo");
+    }
+  }, [historyIndex, history, setNodes, setEdges]);
+
+  const onConnect = useCallback((params: Connection) => {
+    setEdges((eds) => {
+      const newEdges = addEdge({ 
         ...params, 
         markerEnd: { type: MarkerType.ArrowClosed },
         animated: false,
-      }, eds)
-    );
-  }, [setEdges]);
+      }, eds);
+      
+      setTimeout(() => saveToHistory(), 0);
+      return newEdges;
+    });
+  }, [setEdges, saveToHistory]);
 
-  const handleAddNode = (type: string) => {
+  const handleAddNode = useCallback((type: string, options = {}) => {
     const count = nodeCount[type as keyof typeof nodeCount] + 1;
     setNodeCount({
       ...nodeCount,
@@ -156,13 +224,20 @@ const FlowEditor: React.FC = () => {
       id,
       type,
       position: { x: 100 + Math.random() * 300, y: 100 + Math.random() * 100 },
-      data: { label: `${type.charAt(0).toUpperCase() + type.slice(1)} ${count}` },
+      data: { 
+        label: `${type.charAt(0).toUpperCase() + type.slice(1)} ${count}`,
+        ...options
+      },
     };
 
-    setNodes((nds) => nds.concat(newNode));
-  };
+    setNodes((nds) => {
+      const updatedNodes = nds.concat(newNode);
+      setTimeout(() => saveToHistory(), 0);
+      return updatedNodes;
+    });
+  }, [nodeCount, setNodes, saveToHistory]);
 
-  const handleDownload = () => {
+  const handleDownload = useCallback(() => {
     if (reactFlowRef.current === null) return;
 
     const nodesBounds = document.querySelector('.react-flow__nodes');
@@ -191,7 +266,77 @@ const FlowEditor: React.FC = () => {
         console.error('Error downloading image:', error);
         toast.error("Failed to download flowchart");
       });
-  };
+  }, []);
+
+  const handleImageUpload = useCallback(() => {
+    // Create a file input element
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      if (target.files && target.files[0]) {
+        const file = target.files[0];
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const imageUrl = e.target?.result as string;
+          handleAddNode('image', { imageUrl });
+          toast.success("Image added successfully!");
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+    input.click();
+  }, [handleAddNode]);
+
+  // Initialize history with initial state
+  React.useEffect(() => {
+    if (history.length === 0) {
+      saveToHistory();
+    }
+  }, [history, saveToHistory]);
+
+  // Monitor keyboard for shortcuts
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Undo: Ctrl/Cmd + Z
+      if ((event.ctrlKey || event.metaKey) && event.key === 'z') {
+        event.preventDefault();
+        handleUndo();
+      }
+      // Redo: Ctrl/Cmd + Y or Ctrl/Cmd + Shift + Z
+      if ((event.ctrlKey || event.metaKey) && (event.key === 'y' || (event.shiftKey && event.key === 'z'))) {
+        event.preventDefault();
+        handleRedo();
+      }
+      // Space to quick add node
+      if (event.code === 'Space') {
+        event.preventDefault();
+        handleAddNode('action');
+      }
+      // Save with Ctrl/Cmd + S
+      if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+        event.preventDefault();
+        handleDownload();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleUndo, handleRedo, handleAddNode, handleDownload]);
+
+  // Monitor changes to save to history
+  React.useEffect(() => {
+    const saveTimeout = setTimeout(() => {
+      if (history.length > 0) {
+        saveToHistory();
+      }
+    }, 500);
+    
+    return () => clearTimeout(saveTimeout);
+  }, [nodes, edges, saveToHistory, history.length]);
 
   return (
     <div className="h-full w-full" style={{ height: 'calc(100vh - 16px)' }}>
@@ -220,6 +365,8 @@ const FlowEditor: React.FC = () => {
                 return '#40C057';
               case 'error':
                 return '#FA5252';
+              case 'image':
+                return '#7950F2';
               default:
                 return '#7950F2';
             }
@@ -231,7 +378,10 @@ const FlowEditor: React.FC = () => {
         <Panel position="top-left">
           <NodeSelector 
             onAddNode={handleAddNode} 
-            onDownload={handleDownload} 
+            onDownload={handleDownload}
+            onUndo={handleUndo}
+            onRedo={handleRedo}
+            onImageUpload={handleImageUpload}
           />
         </Panel>
       </ReactFlow>
