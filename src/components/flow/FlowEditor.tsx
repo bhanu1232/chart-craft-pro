@@ -137,6 +137,13 @@ const nodeTypes = {
   image: ImageNode,
 };
 
+// Define a proper Node type for our application
+type FlowNode = Node<{
+  label: string;
+  imageUrl?: string;
+  style?: React.CSSProperties;
+}>;
+
 const FlowEditor: React.FC = () => {
   const reactFlowRef = useRef<HTMLDivElement>(null);
   const reactFlowInstance = useReactFlow();
@@ -153,15 +160,15 @@ const FlowEditor: React.FC = () => {
     card: 1,
     image: 1,
   });
-  const [history, setHistory] = useState<{nodes: any[], edges: any[]}[]>([]);
+  const [history, setHistory] = useState<{nodes: FlowNode[], edges: Edge[]}[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
-  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [selectedNode, setSelectedNode] = useState<FlowNode | null>(null);
   const [showNodeSettings, setShowNodeSettings] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
 
   // Handle node selection
   const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
-    setSelectedNode(node);
+    setSelectedNode(node as FlowNode);
     setShowNodeSettings(true);
   }, []);
 
@@ -396,7 +403,8 @@ const FlowEditor: React.FC = () => {
         [newNodeType]: count
       }));
       
-      const newNode = {
+      // Create a properly typed copy of the node
+      const newNode: FlowNode = {
         ...selectedNode,
         id: `${newNodeType}-${count}`,
         position: {
@@ -405,7 +413,7 @@ const FlowEditor: React.FC = () => {
         }
       };
       
-      setNodes(prev => [...prev, newNode]);
+      setNodes(prev => [...prev, newNode as Node]);
       toast.success("Node duplicated");
       setTimeout(() => saveToHistory(), 0);
     } else {
