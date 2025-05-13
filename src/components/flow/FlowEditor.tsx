@@ -12,12 +12,12 @@ import {
   MarkerType,
   Edge,
   Connection,
+  Node,
 } from '@xyflow/react';
 import { toPng } from 'html-to-image';
 import { toast } from "sonner";
 import '@xyflow/react/dist/style.css';
 
-import { NodeSelector } from './NodeSelector';
 import { 
   DecisionNode, 
   ActionNode, 
@@ -28,6 +28,7 @@ import {
   CardNode,
   ImageNode
 } from './CustomNodes';
+import { ToolbarPanel } from './ToolbarPanel';
 
 // Initial nodes and edges
 const initialNodes = [
@@ -339,7 +340,7 @@ const FlowEditor: React.FC = () => {
   }, [nodes, edges, saveToHistory, history.length]);
 
   return (
-    <div className="h-full w-full" style={{ height: 'calc(100vh - 16px)' }}>
+    <div className="h-full w-full" style={{ height: 'calc(100vh - 61px)' }}>
       <ReactFlow
         ref={reactFlowRef}
         nodes={nodes}
@@ -352,6 +353,7 @@ const FlowEditor: React.FC = () => {
         minZoom={0.2}
         maxZoom={1.5}
         deleteKeyCode={['Delete', 'Backspace']}
+        className="bg-gray-50"
       >
         <Controls position="bottom-right" />
         <MiniMap
@@ -375,8 +377,8 @@ const FlowEditor: React.FC = () => {
         />
         <Background gap={16} size={1} />
         
-        <Panel position="top-left">
-          <NodeSelector 
+        <Panel position="top-left" className="bg-white shadow-md rounded-lg p-0 overflow-hidden">
+          <ToolbarPanel 
             onAddNode={handleAddNode} 
             onDownload={handleDownload}
             onUndo={handleUndo}

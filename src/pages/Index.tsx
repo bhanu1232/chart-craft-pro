@@ -1,21 +1,24 @@
 
 import React from 'react';
-import { Sidebar } from '@/components/layout/Sidebar';
 import FlowEditor from '@/components/flow/FlowEditor';
 
 const Index: React.FC = () => {
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <div className="p-4 border-b bg-white shadow-sm">
-          <h1 className="text-xl font-semibold">Flow Editor</h1>
-          <p className="text-sm text-gray-500">Create and customize your workflow diagrams</p>
+    <div className="flex flex-col min-h-screen bg-gray-100">
+      <div className="p-3 border-b bg-white shadow-sm flex justify-between items-center">
+        <div>
+          <h1 className="text-xl font-semibold flex items-center">
+            <span className="mr-1 text-blue-600">ꟻ</span> Finix Flow
+          </h1>
+          <p className="text-xs text-gray-500">Professional Flow Editor</p>
         </div>
-        
-        <div className="flex-1 p-2">
-          <FlowEditor />
+        <div className="text-xs text-gray-500">
+          Press Space to quick-add nodes or Ctrl+S to save your flow
         </div>
+      </div>
+      
+      <div className="flex-1">
+        <FlowEditor />
       </div>
     </div>
   );
