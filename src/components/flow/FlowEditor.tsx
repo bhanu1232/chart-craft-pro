@@ -13,6 +13,9 @@ import {
   Edge,
   Connection,
   Node,
+  useReactFlow,
+  NodeChange,
+  EdgeChange,
 } from '@xyflow/react';
 import { toPng } from 'html-to-image';
 import { toast } from "sonner";
@@ -29,6 +32,7 @@ import {
   ImageNode
 } from './CustomNodes';
 import { ToolbarPanel } from './ToolbarPanel';
+import { NodeSettingsPanel } from './NodeSettingsPanel';
 
 // Initial nodes and edges
 const initialNodes = [
@@ -135,6 +139,7 @@ const nodeTypes = {
 
 const FlowEditor: React.FC = () => {
   const reactFlowRef = useRef<HTMLDivElement>(null);
+  const reactFlowInstance = useReactFlow();
   
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -150,6 +155,28 @@ const FlowEditor: React.FC = () => {
   });
   const [history, setHistory] = useState<{nodes: any[], edges: any[]}[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [showNodeSettings, setShowNodeSettings] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
+
+  // Handle node selection
+  const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
+    setSelectedNode(node);
+    setShowNodeSettings(true);
+  }, []);
+
+  // Handle node styling update
+  const handleUpdateNode = useCallback((id: string, data: any) => {
+    setNodes(nds => 
+      nds.map(node => {
+        if (node.id === id) {
+          return { ...node, data: { ...data } };
+        }
+        return node;
+      })
+    );
+    setTimeout(() => saveToHistory(), 0);
+  }, [setNodes]);
 
   // Save current state to history
   const saveToHistory = useCallback(() => {
@@ -290,6 +317,102 @@ const FlowEditor: React.FC = () => {
     input.click();
   }, [handleAddNode]);
 
+  const handleZoomIn = useCallback(() => {
+    const flow = reactFlowInstance;
+    if (flow) {
+      const { x, y, zoom } = flow.getViewport();
+      flow.setViewport({ x, y, zoom: zoom * 1.2 });
+      setZoomLevel(zoom * 1.2);
+    }
+  }, [reactFlowInstance]);
+
+  const handleZoomOut = useCallback(() => {
+    const flow = reactFlowInstance;
+    if (flow) {
+      const { x, y, zoom } = flow.getViewport();
+      flow.setViewport({ x, y, zoom: zoom / 1.2 });
+      setZoomLevel(zoom / 1.2);
+    }
+  }, [reactFlowInstance]);
+
+  const handleAutoLayout = useCallback(() => {
+    // Simple auto-layout algorithm
+    const nodesByType = nodes.reduce((acc: Record<string, Node[]>, node) => {
+      const type = node.type || 'default';
+      if (!acc[type]) acc[type] = [];
+      acc[type].push(node);
+      return acc;
+    }, {});
+
+    let layoutedNodes = [...nodes];
+    let yOffset = 50;
+    
+    Object.entries(nodesByType).forEach(([type, typeNodes]) => {
+      const spacing = 180;
+      const nodesPerRow = 3;
+      
+      typeNodes.forEach((node, i) => {
+        const xPos = 100 + (i % nodesPerRow) * spacing;
+        const yPos = yOffset + Math.floor(i / nodesPerRow) * 150;
+        
+        layoutedNodes = layoutedNodes.map(n => {
+          if (n.id === node.id) {
+            return {
+              ...n,
+              position: { x: xPos, y: yPos }
+            };
+          }
+          return n;
+        });
+      });
+      
+      yOffset += Math.ceil(typeNodes.length / nodesPerRow) * 150 + 50;
+    });
+    
+    setNodes(layoutedNodes);
+    toast.success("Flow automatically arranged");
+    setTimeout(() => saveToHistory(), 0);
+  }, [nodes, setNodes, saveToHistory]);
+
+  const handleDeleteSelection = useCallback(() => {
+    if (selectedNode) {
+      setNodes(nodes => nodes.filter(n => n.id !== selectedNode.id));
+      setSelectedNode(null);
+      setShowNodeSettings(false);
+      toast("Node deleted");
+      setTimeout(() => saveToHistory(), 0);
+    } else {
+      toast.error("No node selected");
+    }
+  }, [selectedNode, setNodes, saveToHistory]);
+
+  const handleCopyNode = useCallback(() => {
+    if (selectedNode) {
+      const newNodeType = selectedNode.type || 'action';
+      const count = nodeCount[newNodeType as keyof typeof nodeCount] + 1;
+      
+      setNodeCount(prev => ({
+        ...prev,
+        [newNodeType]: count
+      }));
+      
+      const newNode = {
+        ...selectedNode,
+        id: `${newNodeType}-${count}`,
+        position: {
+          x: selectedNode.position.x + 50,
+          y: selectedNode.position.y + 50
+        }
+      };
+      
+      setNodes(prev => [...prev, newNode]);
+      toast.success("Node duplicated");
+      setTimeout(() => saveToHistory(), 0);
+    } else {
+      toast.error("No node selected");
+    }
+  }, [selectedNode, nodeCount, setNodes, saveToHistory]);
+
   // Initialize history with initial state
   React.useEffect(() => {
     if (history.length === 0) {
@@ -320,13 +443,18 @@ const FlowEditor: React.FC = () => {
         event.preventDefault();
         handleDownload();
       }
+      // Delete selected node with Delete key
+      if (event.key === 'Delete' && selectedNode) {
+        event.preventDefault();
+        handleDeleteSelection();
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [handleUndo, handleRedo, handleAddNode, handleDownload]);
+  }, [handleUndo, handleRedo, handleAddNode, handleDownload, handleDeleteSelection, selectedNode]);
 
   // Monitor changes to save to history
   React.useEffect(() => {
@@ -349,6 +477,7 @@ const FlowEditor: React.FC = () => {
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         nodeTypes={nodeTypes}
+        onNodeClick={onNodeClick}
         fitView
         minZoom={0.2}
         maxZoom={1.5}
@@ -384,8 +513,21 @@ const FlowEditor: React.FC = () => {
             onUndo={handleUndo}
             onRedo={handleRedo}
             onImageUpload={handleImageUpload}
+            onZoomIn={handleZoomIn}
+            onZoomOut={handleZoomOut}
+            onAutoLayout={handleAutoLayout}
+            onDeleteSelection={handleDeleteSelection}
+            onCopyNode={handleCopyNode}
           />
         </Panel>
+        
+        {showNodeSettings && selectedNode && (
+          <NodeSettingsPanel 
+            selectedNode={selectedNode} 
+            onClose={() => setShowNodeSettings(false)} 
+            onUpdateNode={handleUpdateNode} 
+          />
+        )}
       </ReactFlow>
     </div>
   );

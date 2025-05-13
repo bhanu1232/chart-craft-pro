@@ -35,6 +35,11 @@ interface ToolbarPanelProps {
   onUndo: () => void;
   onRedo: () => void;
   onImageUpload: () => void;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
+  onAutoLayout: () => void;
+  onDeleteSelection: () => void;
+  onCopyNode: () => void;
 }
 
 export const ToolbarPanel: React.FC<ToolbarPanelProps> = ({ 
@@ -42,7 +47,12 @@ export const ToolbarPanel: React.FC<ToolbarPanelProps> = ({
   onDownload, 
   onUndo, 
   onRedo, 
-  onImageUpload 
+  onImageUpload,
+  onZoomIn,
+  onZoomOut,
+  onAutoLayout,
+  onDeleteSelection,
+  onCopyNode
 }) => {
   return (
     <div className="p-3 flex flex-col gap-3">
@@ -202,11 +212,12 @@ export const ToolbarPanel: React.FC<ToolbarPanelProps> = ({
                 variant="outline" 
                 size="icon" 
                 className="aspect-square"
+                onClick={onCopyNode}
               >
                 <Copy className="h-5 w-5" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Copy (Ctrl+C)</TooltipContent>
+            <TooltipContent>Duplicate (Ctrl+D)</TooltipContent>
           </Tooltip>
 
           <Tooltip>
@@ -215,6 +226,7 @@ export const ToolbarPanel: React.FC<ToolbarPanelProps> = ({
                 variant="outline" 
                 size="icon" 
                 className="aspect-square"
+                onClick={onDeleteSelection}
               >
                 <Trash className="h-5 w-5" />
               </Button>
@@ -235,6 +247,7 @@ export const ToolbarPanel: React.FC<ToolbarPanelProps> = ({
                 variant="outline" 
                 size="icon" 
                 className="aspect-square"
+                onClick={onZoomIn}
               >
                 <ZoomIn className="h-5 w-5" />
               </Button>
@@ -248,6 +261,7 @@ export const ToolbarPanel: React.FC<ToolbarPanelProps> = ({
                 variant="outline" 
                 size="icon" 
                 className="aspect-square"
+                onClick={onZoomOut}
               >
                 <ZoomOut className="h-5 w-5" />
               </Button>
@@ -261,11 +275,12 @@ export const ToolbarPanel: React.FC<ToolbarPanelProps> = ({
                 variant="outline" 
                 size="icon" 
                 className="aspect-square"
+                onClick={onAutoLayout}
               >
-                <Layers className="h-5 w-5" />
+                <Layout className="h-5 w-5" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Manage Layers</TooltipContent>
+            <TooltipContent>Auto Layout</TooltipContent>
           </Tooltip>
 
           <Tooltip>
@@ -275,10 +290,10 @@ export const ToolbarPanel: React.FC<ToolbarPanelProps> = ({
                 size="icon" 
                 className="aspect-square"
               >
-                <Layout className="h-5 w-5" />
+                <Palette className="h-5 w-5" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Auto Layout</TooltipContent>
+            <TooltipContent>Theme</TooltipContent>
           </Tooltip>
         </div>
       </div>
@@ -312,6 +327,7 @@ export const ToolbarPanel: React.FC<ToolbarPanelProps> = ({
         <p>Space: Quick add node</p>
         <p>Ctrl+S: Download</p>
         <p>Delete: Remove selected</p>
+        <p>Click node: Edit properties</p>
       </div>
     </div>
   );
