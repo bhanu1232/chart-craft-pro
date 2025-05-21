@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
@@ -85,16 +84,24 @@ export const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = ({
   
   // Handle color change (background and text)
   const handleColorChange = (bg: string, text: string) => {
+    const customStyles: React.CSSProperties = {
+      backgroundColor: bg,
+      color: text,
+    };
+    
+    // Handle CSS custom properties differently to avoid TypeScript errors
+    const styleWithCustomProps = {
+      ...selectedNode.data.style,
+      ...customStyles,
+    };
+    
+    // Add custom properties using type assertion
+    (styleWithCustomProps as any)['--custom-bg'] = bg;
+    (styleWithCustomProps as any)['--custom-color'] = text;
+    
     onUpdateNode(selectedNode.id, { 
       ...selectedNode.data,
-      style: { 
-        ...selectedNode.data.style,
-        backgroundColor: bg,
-        color: text,
-        // Using CSS variables properly with type assertion
-        '--custom-bg': bg as any, 
-        '--custom-color': text as any
-      }
+      style: styleWithCustomProps
     });
     toast.success("Node style updated");
   };

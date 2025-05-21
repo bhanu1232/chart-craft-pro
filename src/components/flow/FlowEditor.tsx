@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef } from 'react';
 import {
   ReactFlow,
@@ -19,7 +20,7 @@ import { toPng } from 'html-to-image';
 import { toast } from "sonner";
 import '@xyflow/react/dist/style.css';
 
-// Import types from types.ts file (don't define them again)
+// Import types from types.ts file
 import { FlowNode, FlowNodeData, FlowEdge } from './types';
 import { 
   DecisionNode, 
@@ -204,8 +205,8 @@ const FlowEditor: React.FC = () => {
     if (historyIndex > 0) {
       const newIndex = historyIndex - 1;
       const previousState = history[newIndex];
-      setNodes(previousState.nodes as any);
-      setEdges(previousState.edges as any);
+      setNodes(previousState.nodes);
+      setEdges(previousState.edges);
       setHistoryIndex(newIndex);
       toast("Undo successful");
     } else {
@@ -218,8 +219,8 @@ const FlowEditor: React.FC = () => {
     if (historyIndex < history.length - 1) {
       const newIndex = historyIndex + 1;
       const nextState = history[newIndex];
-      setNodes(nextState.nodes as any);
-      setEdges(nextState.edges as any);
+      setNodes(nextState.nodes);
+      setEdges(nextState.edges);
       setHistoryIndex(newIndex);
       toast("Redo successful");
     } else {
@@ -241,7 +242,8 @@ const FlowEditor: React.FC = () => {
   }, [setEdges, saveToHistory]);
 
   const handleAddNode = useCallback((type: string, options = {}) => {
-    const count = nodeCount[type as keyof typeof nodeCount] + 1;
+    const typeKey = type as keyof typeof nodeCount;
+    const count = nodeCount[typeKey] + 1;
     setNodeCount({
       ...nodeCount,
       [type]: count,
@@ -259,7 +261,7 @@ const FlowEditor: React.FC = () => {
     };
 
     setNodes((nds) => {
-      const updatedNodes = nds.concat(newNode as any);
+      const updatedNodes = nds.concat(newNode);
       setTimeout(() => saveToHistory(), 0);
       return updatedNodes;
     });
@@ -338,9 +340,9 @@ const FlowEditor: React.FC = () => {
   const handleAutoLayout = useCallback(() => {
     // Simple auto-layout algorithm
     const nodesByType = nodes.reduce((acc: Record<string, Node[]>, node) => {
-      const type = node.type || 'default';
-      if (!acc[type]) acc[type] = [];
-      acc[type].push(node);
+      const nodeType = node.type || 'default';
+      if (!acc[nodeType]) acc[nodeType] = [];
+      acc[nodeType].push(node);
       return acc;
     }, {});
 
