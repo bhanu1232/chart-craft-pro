@@ -6,7 +6,7 @@ export interface FlowNodeData {
   label: string;
   imageUrl?: string;
   style?: React.CSSProperties;
-  [key: string]: unknown; // Index signature to satisfy Record<string, unknown>
+  [key: string]: unknown; // Add index signature to satisfy Record<string, unknown>
 }
 
 // Define custom node type

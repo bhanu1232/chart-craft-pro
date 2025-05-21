@@ -64,16 +64,16 @@ export const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = ({
   const nodeStyle = selectedNode.data.style || {};
   
   // Extract style properties with fallbacks
-  const nodeWidth = nodeStyle.width || 140;
-  const nodeHeight = nodeStyle.height || 100;
-  const nodeBorderRadius = nodeStyle.borderRadius || 5;
-  const nodeBorderWidth = nodeStyle.borderWidth || 1;
-  const nodeFontSize = nodeStyle.fontSize || 12;
-  const nodeOpacity = (nodeStyle.opacity || 1) * 100;
+  const nodeWidth = Number(nodeStyle.width || 140);
+  const nodeHeight = Number(nodeStyle.height || 100);
+  const nodeBorderRadius = Number(nodeStyle.borderRadius || 5);
+  const nodeBorderWidth = Number(nodeStyle.borderWidth || 1);
+  const nodeFontSize = Number(nodeStyle.fontSize || 12);
+  const nodeOpacity = Number(nodeStyle.opacity || 1) * 100;
   const nodeBorderStyle = nodeStyle.borderStyle || 'solid';
   const nodeFontFamily = nodeStyle.fontFamily || 'Inter, sans-serif';
   const nodeRotation = nodeStyle.transform ? 
-    parseInt(nodeStyle.transform.replace('rotate(', '').replace('deg)', '')) || 0 : 0;
+    parseInt(String(nodeStyle.transform).replace('rotate(', '').replace('deg)', '')) || 0 : 0;
 
   // Handle basic label change
   const handleLabelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,8 +91,9 @@ export const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = ({
         ...selectedNode.data.style,
         backgroundColor: bg,
         color: text,
-        '--custom-bg': bg, // CSS variable for styling
-        '--custom-color': text
+        // Using CSS variables properly with type assertion
+        '--custom-bg': bg as any, 
+        '--custom-color': text as any
       }
     });
     toast.success("Node style updated");

@@ -10,14 +10,16 @@ import {
   Panel,
   MarkerType,
   Connection,
-  Node,
   useReactFlow,
   NodeTypes,
+  Edge,
+  Node,
 } from '@xyflow/react';
 import { toPng } from 'html-to-image';
 import { toast } from "sonner";
 import '@xyflow/react/dist/style.css';
 
+// Import types from types.ts file (don't define them again)
 import { FlowNode, FlowNodeData, FlowEdge } from './types';
 import { 
   DecisionNode, 
@@ -45,7 +47,7 @@ const nodeTypes: NodeTypes = {
 };
 
 // Initial nodes and edges - no type changes needed here
-const initialNodes = [
+const initialNodes: FlowNode[] = [
   {
     id: 'decision-1',
     type: 'decision',
@@ -93,7 +95,7 @@ const initialNodes = [
   },
 ];
 
-const initialEdges = [
+const initialEdges: FlowEdge[] = [
   { 
     id: 'e1-2', 
     source: 'decision-1', 
@@ -134,16 +136,6 @@ const initialEdges = [
     label: 'No' 
   },
 ];
-
-// Define our custom node type that matches the structure used throughout the app
-interface FlowNodeData {
-  label: string;
-  imageUrl?: string;
-  style?: React.CSSProperties;
-}
-
-type FlowNode = Node<FlowNodeData>;
-type FlowEdge = Edge;
 
 const FlowEditor: React.FC = () => {
   const reactFlowRef = useRef<HTMLDivElement>(null);
