@@ -9,17 +9,16 @@ import {
   addEdge,
   Panel,
   MarkerType,
-  Edge,
   Connection,
   Node,
   useReactFlow,
-  NodeChange,
-  EdgeChange,
+  NodeTypes,
 } from '@xyflow/react';
 import { toPng } from 'html-to-image';
 import { toast } from "sonner";
 import '@xyflow/react/dist/style.css';
 
+import { FlowNode, FlowNodeData, FlowEdge } from './types';
 import { 
   DecisionNode, 
   ActionNode, 
@@ -34,7 +33,7 @@ import { ToolbarPanel } from './ToolbarPanel';
 import { NodeSettingsPanel } from './NodeSettingsPanel';
 
 // Node types mapping
-const nodeTypes = {
+const nodeTypes: NodeTypes = {
   decision: DecisionNode,
   action: ActionNode,
   success: SuccessNode,
@@ -175,11 +174,11 @@ const FlowEditor: React.FC = () => {
   }, []);
 
   // Handle node styling update
-  const handleUpdateNode = useCallback((id: string, data: any) => {
+  const handleUpdateNode = useCallback((id: string, data: FlowNodeData) => {
     setNodes(nds => 
       nds.map(node => {
         if (node.id === id) {
-          return { ...node, data: { ...data } };
+          return { ...node, data: { ...node.data, ...data } };
         }
         return node;
       })
