@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { ReactFlowProvider } from '@xyflow/react';
 import FlowEditor from '@/components/flow/FlowEditor';
 
 const Index: React.FC = () => {
@@ -18,7 +19,9 @@ const Index: React.FC = () => {
       </div>
       
       <div className="flex-1">
-        <FlowEditor />
+        <ReactFlowProvider>
+          <FlowEditor />
+        </ReactFlowProvider>
       </div>
     </div>
   );

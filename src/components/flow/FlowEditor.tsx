@@ -144,6 +144,8 @@ type FlowNode = Node<{
   style?: React.CSSProperties;
 }>;
 
+type FlowEdge = Edge;
+
 const FlowEditor: React.FC = () => {
   const reactFlowRef = useRef<HTMLDivElement>(null);
   const reactFlowInstance = useReactFlow();
@@ -160,7 +162,7 @@ const FlowEditor: React.FC = () => {
     card: 1,
     image: 1,
   });
-  const [history, setHistory] = useState<{nodes: FlowNode[], edges: Edge[]}[]>([]);
+  const [history, setHistory] = useState<{nodes: Node[], edges: Edge[]}[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [selectedNode, setSelectedNode] = useState<FlowNode | null>(null);
   const [showNodeSettings, setShowNodeSettings] = useState(false);
@@ -404,7 +406,7 @@ const FlowEditor: React.FC = () => {
       }));
       
       // Create a properly typed copy of the node
-      const newNode: FlowNode = {
+      const newNode = {
         ...selectedNode,
         id: `${newNodeType}-${count}`,
         position: {
@@ -413,7 +415,7 @@ const FlowEditor: React.FC = () => {
         }
       };
       
-      setNodes(prev => [...prev, newNode as Node]);
+      setNodes(prev => [...prev, newNode]);
       toast.success("Node duplicated");
       setTimeout(() => saveToHistory(), 0);
     } else {
