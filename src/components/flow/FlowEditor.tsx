@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef } from 'react';
 import {
   ReactFlow,
@@ -34,7 +33,19 @@ import {
 import { ToolbarPanel } from './ToolbarPanel';
 import { NodeSettingsPanel } from './NodeSettingsPanel';
 
-// Initial nodes and edges
+// Node types mapping
+const nodeTypes = {
+  decision: DecisionNode,
+  action: ActionNode,
+  success: SuccessNode,
+  error: ErrorNode,
+  flag: FlagNode,
+  qrcode: QRCodeNode,
+  card: CardNode,
+  image: ImageNode,
+};
+
+// Initial nodes and edges - no type changes needed here
 const initialNodes = [
   {
     id: 'decision-1',
@@ -125,32 +136,21 @@ const initialEdges = [
   },
 ];
 
-// Node types mapping
-const nodeTypes = {
-  decision: DecisionNode,
-  action: ActionNode,
-  success: SuccessNode,
-  error: ErrorNode,
-  flag: FlagNode,
-  qrcode: QRCodeNode,
-  card: CardNode,
-  image: ImageNode,
-};
-
-// Define a proper Node type for our application
-type FlowNode = Node<{
+// Define our custom node type that matches the structure used throughout the app
+interface FlowNodeData {
   label: string;
   imageUrl?: string;
   style?: React.CSSProperties;
-}>;
+}
 
+type FlowNode = Node<FlowNodeData>;
 type FlowEdge = Edge;
 
 const FlowEditor: React.FC = () => {
   const reactFlowRef = useRef<HTMLDivElement>(null);
   const reactFlowInstance = useReactFlow();
   
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [nodes, setNodes, onNodesChange] = useNodesState<FlowNodeData>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [nodeCount, setNodeCount] = useState({
     action: 1,
@@ -162,7 +162,7 @@ const FlowEditor: React.FC = () => {
     card: 1,
     image: 1,
   });
-  const [history, setHistory] = useState<{nodes: Node[], edges: Edge[]}[]>([]);
+  const [history, setHistory] = useState<{nodes: FlowNode[], edges: FlowEdge[]}[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [selectedNode, setSelectedNode] = useState<FlowNode | null>(null);
   const [showNodeSettings, setShowNodeSettings] = useState(false);
@@ -190,8 +190,8 @@ const FlowEditor: React.FC = () => {
   // Save current state to history
   const saveToHistory = useCallback(() => {
     const currentState = {
-      nodes: JSON.parse(JSON.stringify(nodes)),
-      edges: JSON.parse(JSON.stringify(edges))
+      nodes: JSON.parse(JSON.stringify(nodes)) as FlowNode[],
+      edges: JSON.parse(JSON.stringify(edges)) as FlowEdge[]
     };
     
     // Only save if there are actual changes
@@ -213,8 +213,8 @@ const FlowEditor: React.FC = () => {
     if (historyIndex > 0) {
       const newIndex = historyIndex - 1;
       const previousState = history[newIndex];
-      setNodes(previousState.nodes);
-      setEdges(previousState.edges);
+      setNodes(previousState.nodes as any);
+      setEdges(previousState.edges as any);
       setHistoryIndex(newIndex);
       toast("Undo successful");
     } else {
@@ -227,8 +227,8 @@ const FlowEditor: React.FC = () => {
     if (historyIndex < history.length - 1) {
       const newIndex = historyIndex + 1;
       const nextState = history[newIndex];
-      setNodes(nextState.nodes);
-      setEdges(nextState.edges);
+      setNodes(nextState.nodes as any);
+      setEdges(nextState.edges as any);
       setHistoryIndex(newIndex);
       toast("Redo successful");
     } else {
@@ -257,7 +257,7 @@ const FlowEditor: React.FC = () => {
     });
 
     const id = `${type}-${count}`;
-    let newNode = {
+    const newNode: FlowNode = {
       id,
       type,
       position: { x: 100 + Math.random() * 300, y: 100 + Math.random() * 100 },
@@ -268,7 +268,7 @@ const FlowEditor: React.FC = () => {
     };
 
     setNodes((nds) => {
-      const updatedNodes = nds.concat(newNode);
+      const updatedNodes = nds.concat(newNode as any);
       setTimeout(() => saveToHistory(), 0);
       return updatedNodes;
     });
@@ -406,7 +406,7 @@ const FlowEditor: React.FC = () => {
       }));
       
       // Create a properly typed copy of the node
-      const newNode = {
+      const newNode: FlowNode = {
         ...selectedNode,
         id: `${newNodeType}-${count}`,
         position: {
@@ -415,7 +415,7 @@ const FlowEditor: React.FC = () => {
         }
       };
       
-      setNodes(prev => [...prev, newNode]);
+      setNodes(prev => [...prev, newNode as any]);
       toast.success("Node duplicated");
       setTimeout(() => saveToHistory(), 0);
     } else {
